@@ -7,27 +7,59 @@ import (
 	"net/url"
 )
 
-// buildUrl builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns
+type Cartographer interface {
+	Client() *http.Client
+	OrgName() string
+	Token() string
+}
+
+type Filter struct {
+	//Index int
+	Type     string
+	Operator string
+	Value    string
+}
+
+// func buildUrl(orgName string) (*url.URL, error) { builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns
 // the formatted URL string.
-func buildUrl(orgName string) string {
-	return fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer?type=modules", orgName)
+func buildUrl(orgName string) (*url.URL, error) {
+	baseURL, err := url.Parse(fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer", orgName))
+	if err != nil {
+		return nil, err
+	}
+	return baseURL, nil
 }
 
 // Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
 // organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
 // is successful, it returns a slice of Module.
-func Modules(client *http.Client, orgName string, token string) (ModuleList, error) {
+func Modules(c Cartographer, filters []Filter) (ModuleList, error) {
 	var modules ModuleList
 
-	req, err := http.NewRequest("GET", buildUrl(orgName), nil)
+	baseUrl, err := buildUrl(c.OrgName())
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+token)
+	q := url.Values{}
+	q.Add("type", "modules")
+
+	for i, filter := range filters {
+		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type, filter.Operator)
+		q.Add(key, filter.Value)
+	}
+
+	baseUrl.RawQuery = q.Encode()
+
+	req, err := http.NewRequest("GET", baseUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.Token())
 
 	for {
-		res, err := client.Do(req)
+		res, err := c.Client().Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -61,15 +93,15 @@ type ModuleList []Module
 
 // Filter filters the ModuleList based on the provided filter function. It returns a new ModuleList containing only the
 // modules that match the filter.
-func (ml ModuleList) Filter(filter func(Module) bool) ModuleList {
-	var result ModuleList
-	for _, m := range ml {
-		if filter(m) {
-			result = append(result, m)
-		}
-	}
-	return result
-}
+//func (ml ModuleList) Filter(filter func(Module) bool) ModuleList {
+//	var result ModuleList
+//	for _, m := range ml {
+//		if filter(m) {
+//			result = append(result, m)
+//		}
+//	}
+//	return result
+//}
 
 // CheckStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
 // that the request was rate limited. If the status code is not in the 200 range, it returns an error indicating

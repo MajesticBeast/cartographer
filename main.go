@@ -14,6 +14,24 @@ type Cartographer struct {
 	token   string
 }
 
+type Filter struct {
+	Type     string
+	Operator string
+	Value    string
+}
+
+func (c *Cartographer) Client() *http.Client {
+	return c.client
+}
+
+func (c *Cartographer) OrgName() string {
+	return c.orgName
+}
+
+func (c *Cartographer) Token() string {
+	return c.token
+}
+
 func NewCartographer(orgName string, token string) *Cartographer {
 	return &Cartographer{
 		client: &http.Client{
@@ -24,31 +42,27 @@ func NewCartographer(orgName string, token string) *Cartographer {
 	}
 }
 
-func (c *Cartographer) Modules() (modules.ModuleList, error) {
-	return modules.Modules(c.client, c.orgName, c.token)
+func (c *Cartographer) Modules(filters []modules.Filter) (modules.ModuleList, error) {
+	return modules.Modules(c, filters)
 }
 
 func main() {
 	c := NewCartographer("thelostsons", os.Getenv("TFTOKEN"))
 
-	mods, err := c.Modules()
+	var filters []modules.Filter
+	filters = append(filters, modules.Filter{
+		Type:     "name",
+		Operator: "contains",
+		Value:    "iam",
+	})
+
+	mods, err := c.Modules(filters)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	filteredMods := mods.Filter(func(m modules.Module) bool {
-		return m.WorkspaceCount > 10
-	})
-
-	moreFilteredMods := mods.Filter(func(m modules.Module) bool {
-		return m.WorkspaceCount < 10
-	})
-
-	for _, mod := range filteredMods {
-		log.Printf("%s %s %s %s %d %s\n", mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
+	for _, mod := range mods {
+		log.Println(mod)
 	}
 
-	for _, mod := range moreFilteredMods {
-		log.Printf("%s %s %s %s %d %s\n", mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
-	}
 }
