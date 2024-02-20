@@ -56,8 +56,11 @@ func Modules(client *http.Client, orgName string, token string) (ModuleList, err
 	return modules, nil
 }
 
+// ModuleList is a slice of Module
 type ModuleList []Module
 
+// Filter filters the ModuleList based on the provided filter function. It returns a new ModuleList containing only the
+// modules that match the filter.
 func (ml ModuleList) Filter(filter func(Module) bool) ModuleList {
 	var result ModuleList
 	for _, m := range ml {
