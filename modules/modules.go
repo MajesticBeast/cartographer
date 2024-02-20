@@ -16,8 +16,8 @@ func buildUrl(orgName string) string {
 // Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
 // organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
 // is successful, it returns a slice of Module.
-func Modules(client *http.Client, orgName string, token string) ([]Module, error) {
-	var modules []Module
+func Modules(client *http.Client, orgName string, token string) (ModuleList, error) {
+	var modules ModuleList
 
 	req, err := http.NewRequest("GET", buildUrl(orgName), nil)
 	if err != nil {
@@ -54,6 +54,18 @@ func Modules(client *http.Client, orgName string, token string) ([]Module, error
 	}
 
 	return modules, nil
+}
+
+type ModuleList []Module
+
+func (ml ModuleList) Filter(filter func(Module) bool) ModuleList {
+	var result ModuleList
+	for _, m := range ml {
+		if filter(m) {
+			result = append(result, m)
+		}
+	}
+	return result
 }
 
 // CheckStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating

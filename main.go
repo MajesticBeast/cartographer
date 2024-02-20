@@ -24,7 +24,7 @@ func NewCartographer(orgName string, token string) *Cartographer {
 	}
 }
 
-func (c *Cartographer) Modules() ([]modules.Module, error) {
+func (c *Cartographer) Modules() (modules.ModuleList, error) {
 	return modules.Modules(c.client, c.orgName, c.token)
 }
 
@@ -36,7 +36,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, mod := range mods {
+	filteredMods := mods.Filter(func(m modules.Module) bool {
+		return m.WorkspaceCount > 10
+	})
+
+	moreFilteredMods := mods.Filter(func(m modules.Module) bool {
+		return m.WorkspaceCount < 10
+	})
+
+	for _, mod := range filteredMods {
+		log.Printf("%s %s %s %s %d %s\n", mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
+	}
+
+	for _, mod := range moreFilteredMods {
 		log.Printf("%s %s %s %s %d %s\n", mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
 	}
 }
