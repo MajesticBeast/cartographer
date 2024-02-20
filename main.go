@@ -1,35 +1,39 @@
 package main
 
 import (
-	"github.com/majesticbeast/cartographer/modules"
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
+
+const (
+	Is FilterOperator = iota
+	IsNot
+	Contains
+	DoesNotContain
+	IsEmpty
+	IsNotEmpty
+	Gt
+	Lt
+	Gteq
+	Lteq
+	IsBefore
+	IsAfter
+)
+
+type FilterOperator int
+
+func (f FilterOperator) String() string {
+	return [...]string{"is", "is-not", "contains", "does-not-contain", "is-empty", "is-not-empty", "gt", "lt", "gteq", "lteq", "is-before", "is-after"}[f]
+}
 
 type Cartographer struct {
 	client  *http.Client
 	orgName string
 	token   string
-}
-
-type Filter struct {
-	Type     string
-	Operator string
-	Value    string
-}
-
-func (c *Cartographer) Client() *http.Client {
-	return c.client
-}
-
-func (c *Cartographer) OrgName() string {
-	return c.orgName
-}
-
-func (c *Cartographer) Token() string {
-	return c.token
 }
 
 func NewCartographer(orgName string, token string) *Cartographer {
@@ -42,27 +46,63 @@ func NewCartographer(orgName string, token string) *Cartographer {
 	}
 }
 
-func (c *Cartographer) Modules(filters []modules.Filter) (modules.ModuleList, error) {
-	return modules.Modules(c, filters)
+// buildUrl Builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns the
+// formatted URL string.
+func buildUrl(orgName string) (*url.URL, error) {
+	baseURL, err := url.Parse(fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer", orgName))
+	if err != nil {
+		return nil, err
+	}
+	return baseURL, nil
+}
+
+// CheckStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
+// that the request was rate limited. If the status code is not in the 200 range, it returns an error indicating
+// the status code.
+func CheckStatusCode(res *http.Response) error {
+	if res.StatusCode == 429 {
+		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting")
+	}
+
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
+	return nil
 }
 
 func main() {
 	c := NewCartographer("thelostsons", os.Getenv("TFTOKEN"))
 
-	var filters []modules.Filter
-	filters = append(filters, modules.Filter{
-		Type:     "name",
-		Operator: "contains",
+	var moduleFilters []ModuleFilter
+	moduleFilters = append(moduleFilters, ModuleFilter{
+		Type:     Name,
+		Operator: Contains,
 		Value:    "iam",
 	})
 
-	mods, err := c.Modules(filters)
+	mods, err := c.Modules(moduleFilters)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for _, mod := range mods {
 		log.Println(mod)
+	}
+
+	var workspaceFilters []WorkspaceFilter
+	workspaceFilters = append(workspaceFilters, WorkspaceFilter{
+		Type:     WorkspaceName,
+		Operator: Contains,
+		Value:    "lostsons",
+	})
+
+	works, err := c.Workspaces(workspaceFilters)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, work := range works {
+		log.Println(work.WorkspaceName, work.WorkspaceCreatedAt, work.WorkspaceUpdatedAt, work.Modules, work.ModuleCount)
 	}
 
 }

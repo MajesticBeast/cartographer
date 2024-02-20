@@ -1,4 +1,4 @@
-package modules
+package main
 
 import (
 	"encoding/json"
@@ -7,36 +7,33 @@ import (
 	"net/url"
 )
 
-type Cartographer interface {
-	Client() *http.Client
-	OrgName() string
-	Token() string
+const (
+	Name ModuleFilterType = iota
+	Source
+	Version
+	WorkspaceCount
+	InWorkspaces
+)
+
+type ModuleFilterType int
+
+func (m ModuleFilterType) String() string {
+	return [...]string{"name", "source", "version", "workspace-count", "workspaces"}[m]
 }
 
-type Filter struct {
-	//Index int
-	Type     string
-	Operator string
+type ModuleFilter struct {
+	Type     ModuleFilterType
+	Operator FilterOperator
 	Value    string
-}
-
-// func buildUrl(orgName string) (*url.URL, error) { builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns
-// the formatted URL string.
-func buildUrl(orgName string) (*url.URL, error) {
-	baseURL, err := url.Parse(fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer", orgName))
-	if err != nil {
-		return nil, err
-	}
-	return baseURL, nil
 }
 
 // Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
 // organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
 // is successful, it returns a slice of Module.
-func Modules(c Cartographer, filters []Filter) (ModuleList, error) {
+func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 	var modules ModuleList
 
-	baseUrl, err := buildUrl(c.OrgName())
+	baseUrl, err := buildUrl(c.orgName)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +42,7 @@ func Modules(c Cartographer, filters []Filter) (ModuleList, error) {
 	q.Add("type", "modules")
 
 	for i, filter := range filters {
-		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type, filter.Operator)
+		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type.String(), filter.Operator.String())
 		q.Add(key, filter.Value)
 	}
 
@@ -56,10 +53,10 @@ func Modules(c Cartographer, filters []Filter) (ModuleList, error) {
 		return nil, err
 	}
 
-	req.Header.Set("Authorization", "Bearer "+c.Token())
+	req.Header.Set("Authorization", "Bearer "+c.token)
 
 	for {
-		res, err := c.Client().Do(req)
+		res, err := c.client.Do(req)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +65,7 @@ func Modules(c Cartographer, filters []Filter) (ModuleList, error) {
 			return nil, err
 		}
 
-		var apiResponse apiResponse
+		var apiResponse modulesApiResponse
 		if err = json.NewDecoder(res.Body).Decode(&apiResponse); err != nil {
 			return nil, err
 		}
@@ -91,32 +88,6 @@ func Modules(c Cartographer, filters []Filter) (ModuleList, error) {
 // ModuleList is a slice of Module
 type ModuleList []Module
 
-// Filter filters the ModuleList based on the provided filter function. It returns a new ModuleList containing only the
-// modules that match the filter.
-//func (ml ModuleList) Filter(filter func(Module) bool) ModuleList {
-//	var result ModuleList
-//	for _, m := range ml {
-//		if filter(m) {
-//			result = append(result, m)
-//		}
-//	}
-//	return result
-//}
-
-// CheckStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
-// that the request was rate limited. If the status code is not in the 200 range, it returns an error indicating
-// the status code.
-func CheckStatusCode(res *http.Response) error {
-	if res.StatusCode == 429 {
-		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting")
-	}
-
-	if res.StatusCode < 200 || res.StatusCode >= 300 {
-		return fmt.Errorf("unexpected status code %d", res.StatusCode)
-	}
-	return nil
-}
-
 // Module represents a module in Terraform Cloud
 type Module struct {
 	Name           string `json:"name"`
@@ -128,7 +99,7 @@ type Module struct {
 }
 
 // apiResponse is the response from the Terraform Cloud API
-type apiResponse struct {
+type modulesApiResponse struct {
 	Data []struct {
 		Attributes struct {
 			Name           string `json:"name"`
