@@ -7,20 +7,15 @@ import (
 	"net/url"
 )
 
+// buildUrl builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns
+// the formatted URL string.
 func buildUrl(orgName string) string {
 	return fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer?type=modules", orgName)
 }
 
-type Module struct {
-	Name           string `json:"name"`
-	Source         string `json:"source"`
-	Version        string `json:"version"`
-	RegistryType   string `json:"registry-type"`
-	WorkspaceCount int    `json:"workspace-count"`
-	Workspaces     string `json:"workspaces"`
-}
-
-// Modules Retrieve a list of modules across all workspaces
+// Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
+// organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
+// is successful, it returns a slice of Module.
 func Modules(client *http.Client, orgName string, token string) ([]Module, error) {
 	var modules []Module
 
@@ -61,6 +56,9 @@ func Modules(client *http.Client, orgName string, token string) ([]Module, error
 	return modules, nil
 }
 
+// CheckStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
+// that the request was rate limited. If the status code is not in the 200 range, it returns an error indicating
+// the status code.
 func CheckStatusCode(res *http.Response) error {
 	if res.StatusCode == 429 {
 		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting")
@@ -72,6 +70,17 @@ func CheckStatusCode(res *http.Response) error {
 	return nil
 }
 
+// Module represents a module in Terraform Cloud
+type Module struct {
+	Name           string `json:"name"`
+	Source         string `json:"source"`
+	Version        string `json:"version"`
+	RegistryType   string `json:"registry-type"`
+	WorkspaceCount int    `json:"workspace-count"`
+	Workspaces     string `json:"workspaces"`
+}
+
+// apiResponse is the response from the Terraform Cloud API
 type apiResponse struct {
 	Data []struct {
 		Attributes struct {
