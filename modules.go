@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	moduleName ModuleFilterType = iota
-	moduleSource
-	moduleVersion
-	moduleWorkspaceCount
-	moduleInWorkspaces
+	ModuleName ModuleFilterType = iota
+	ModuleSource
+	ModuleVersion
+	ModuleWorkspaceCount
+	ModuleInWorkspaces
 )
 
 type ModuleFilterType int
