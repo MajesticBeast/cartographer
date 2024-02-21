@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	Name ModuleFilterType = iota
-	Source
-	Version
-	WorkspaceCount
-	InWorkspaces
+	ModuleName ModuleFilterType = iota
+	ModuleSource
+	ModuleVersion
+	ModuleWorkspaceCount
+	ModuleInWorkspaces
 )
 
 type ModuleFilterType int
@@ -74,7 +74,7 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 			modules = append(modules, item.Attributes)
 		}
 
-		if apiResponse.Meta.Pagination.CurrentPage == apiResponse.Meta.Pagination.TotalPages {
+		if apiResponse.Meta.Pagination.NextPage == nil {
 			break
 		}
 
@@ -98,7 +98,7 @@ type Module struct {
 	Workspaces     string `json:"workspaces"`
 }
 
-// apiResponse is the response from the Terraform Cloud API
+// modulesApiResponse is the response from the Terraform Cloud API
 type modulesApiResponse struct {
 	Data []struct {
 		Attributes struct {

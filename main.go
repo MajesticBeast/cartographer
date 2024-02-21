@@ -75,7 +75,7 @@ func main() {
 
 	var moduleFilters []ModuleFilter
 	moduleFilters = append(moduleFilters, ModuleFilter{
-		Type:     Name,
+		Type:     ModuleName,
 		Operator: Contains,
 		Value:    "iam",
 	})
@@ -86,7 +86,7 @@ func main() {
 	}
 
 	for _, mod := range mods {
-		log.Println(mod)
+		log.Println(mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
 	}
 
 	var workspaceFilters []WorkspaceFilter
@@ -96,13 +96,29 @@ func main() {
 		Value:    "lostsons",
 	})
 
+	var providerFilters []ProviderFilter
+	providerFilters = append(providerFilters, ProviderFilter{
+		Type:     ProviderName,
+		Operator: Contains,
+		Value:    "aws",
+	})
+
 	works, err := c.Workspaces(workspaceFilters)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	provs, err := c.Providers(providerFilters)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for _, work := range works {
 		log.Println(work.WorkspaceName, work.WorkspaceCreatedAt, work.WorkspaceUpdatedAt, work.Modules, work.ModuleCount)
+	}
+
+	for _, prov := range provs {
+		log.Println(prov.Name, prov.Source, prov.Version, prov.RegistryType, prov.WorkspaceCount, prov.Workspaces)
 	}
 
 }

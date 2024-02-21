@@ -9,27 +9,27 @@ import (
 )
 
 const (
-	AllChecksSucceeded WorkspaceFilterType = iota
-	ChecksErrored
-	ChecksFailed
-	ChecksPassed
-	ChecksUnknown
-	CurrentRunAppliedAt
-	CurrentRunExternalId
-	CurrentRunStatus
-	Drifted
-	ExternalId
-	ModuleCount
-	ModulesInWorkspace
-	OrganizationName
-	ProjectExternalId
-	ProjectName
-	ProviderCount
-	Providers
-	ResourcesDrifted
-	ResourcesUndrifted
-	StateVersionTerraformVersion
-	VcsRepoIdentifier
+	WorkspaceAllChecksSucceeded WorkspaceFilterType = iota
+	WorkspaceChecksErrored
+	WorkspaceChecksFailed
+	WorkspaceChecksPassed
+	WorkspaceChecksUnknown
+	WorkspaceCurrentRunAppliedAt
+	WorkspaceCurrentRunExternalId
+	WorkspaceCurrentRunStatus
+	WorkspaceDrifted
+	WorkspaceExternalId
+	WorkspaceModuleCount
+	WorkspaceModulesInWorkspace
+	WorkspaceOrganizationName
+	WorkspaceProjectExternalId
+	WorkspaceProjectName
+	WorkspaceProviderCount
+	WorkspaceProviders
+	WorkspaceResourcesDrifted
+	WorkspaceResourcesUndrifted
+	WorkspaceStateVersionTerraformVersion
+	WorkspaceVcsRepoIdentifier
 	WorkspaceCreatedAt
 	WorkspaceName
 	WorkspaceTerraformVersion
@@ -76,6 +76,9 @@ func (w WorkspaceFilterType) String() string {
 
 type WorkspaceList []Workspace
 
+// Workspaces Retrieve a list of workspaces in an organization. It takes an http.Client, the name of the organization,
+// and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request is successful,
+// it returns a slice of Workspace.
 func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, error) {
 	var workspaces WorkspaceList
 
@@ -116,7 +119,7 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, err
 			workspaces = append(workspaces, item.Attributes)
 		}
 
-		if apiResponse.Meta.Pagination.CurrentPage == apiResponse.Meta.Pagination.TotalPages {
+		if apiResponse.Meta.Pagination.NextPage == nil {
 			break
 		}
 
@@ -127,6 +130,7 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, err
 	return workspaces, nil
 }
 
+// Workspace represents a workspace in Terraform Cloud
 type Workspace struct {
 	AllChecksSucceeded           bool        `json:"all-checks-succeeded"`
 	ChecksErrored                int         `json:"checks-errored"`
@@ -155,6 +159,7 @@ type Workspace struct {
 	WorkspaceUpdatedAt           time.Time   `json:"workspace-updated-at"`
 }
 
+// workspacesApiResponse is the response from the Terraform Cloud API
 type workspacesApiResponse struct {
 	Data []struct {
 		Attributes struct {
