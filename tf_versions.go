@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	tfVersionVersion TFVersionFilterType = iota
-	tfVersionWorkspaceCount
-	tfVersionWorkspaces
+	TFVersionVersion TFVersionFilterType = iota
+	TFVersionWorkspaceCount
+	TFVersionWorkspaces
 )
 
 type TFVersionFilterType int
@@ -22,11 +22,15 @@ type TFVersionFilter struct {
 	Value    string
 }
 
+// TFVersionFilterType Stringer
 func (c TFVersionFilterType) String() string {
 	return [...]string{"version", "workspace-count", "workspaces"}[c]
 }
 
-func (c *Cartographer) tfVersions() (TFVersionList, error) {
+// TFVersions Retrieve a list of Terraform versions across all workspaces in an organization. It takes an http.Client,
+// the name of the organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error.
+// If the request is successful, it returns a slice of TFVersion.
+func (c *Cartographer) TFVersions() (TFVersionList, error) {
 	var tfVersions TFVersionList
 
 	baseUrl, err := buildUrl(c.orgName)
@@ -79,12 +83,14 @@ func (c *Cartographer) tfVersions() (TFVersionList, error) {
 	return tfVersions, nil
 }
 
+// TFVersion represents a Terraform version.
 type TFVersion struct {
 	Version        string `json:"version"`
 	WorkspaceCount int    `json:"workspace-count"`
 	Workspaces     string `json:"workspaces"`
 }
 
+// tfVersionsApiResponse is the response from the Terraform Cloud API for the tf_versions endpoint.
 type tfVersionsApiResponse struct {
 	Data []struct {
 		Attributes struct {

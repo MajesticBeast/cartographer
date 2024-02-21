@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	providerName ProviderFilterType = iota
-	providerSource
-	providerVersion
-	providerRegistryType
-	providerWorkspaceCount
-	providerWorkspaces
+	ProviderName ProviderFilterType = iota
+	ProviderSource
+	ProviderVersion
+	ProviderRegistryType
+	ProviderWorkspaceCount
+	ProviderWorkspaces
 )
 
 type ProviderList []Provider
@@ -30,10 +30,10 @@ type ProviderFilter struct {
 	Value    string
 }
 
-// providers Retrieve a list of providers across all workspaces in an organization. It takes an http.Client, the name of
+// Providers Retrieve a list of providers across all workspaces in an organization. It takes an http.Client, the name of
 // the organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the
 // request is successful, it returns a slice of provider.
-func (c *Cartographer) providers(filters []ProviderFilter) (ProviderList, error) {
+func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error) {
 	var providers ProviderList
 
 	baseUrl, err := buildUrl(c.orgName)
