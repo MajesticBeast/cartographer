@@ -68,12 +68,12 @@ func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error)
 			return nil, err
 		}
 
-		var response providerApiResponse
-		if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		var apiResponse providerApiResponse
+		if err := json.NewDecoder(res.Body).Decode(&apiResponse); err != nil {
 			return nil, err
 		}
 
-		for _, provider := range response.Data {
+		for _, provider := range apiResponse.Data {
 			providers = append(providers, Provider{
 				Name:           provider.Attributes.Name,
 				Source:         provider.Attributes.Source,
@@ -84,14 +84,15 @@ func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error)
 			})
 		}
 
-		if response.Links.Next == nil {
+		if apiResponse.Links.Next == nil {
 			break
 		}
 
-		req, err = http.NewRequest("GET", response.Links.Next.(string), nil)
+		req, err = http.NewRequest("GET", apiResponse.Links.Next.(string), nil)
 		if err != nil {
 			return nil, err
 		}
+		res.Body.Close()
 	}
 
 	return providers, nil

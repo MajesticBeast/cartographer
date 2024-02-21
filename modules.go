@@ -79,6 +79,9 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 		}
 
 		req.URL, err = url.Parse(apiResponse.Links.Next.(string))
+		if err != nil {
+			return nil, err
+		}
 		res.Body.Close()
 	}
 

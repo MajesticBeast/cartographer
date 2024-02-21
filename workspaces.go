@@ -124,6 +124,9 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, err
 		}
 
 		req.URL, err = url.Parse(apiResponse.Links.Next.(string))
+		if err != nil {
+			return nil, err
+		}
 		res.Body.Close()
 	}
 

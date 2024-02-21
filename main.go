@@ -80,15 +80,6 @@ func main() {
 		Value:    "iam",
 	})
 
-	mods, err := c.Modules(moduleFilters)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, mod := range mods {
-		log.Println(mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
-	}
-
 	var workspaceFilters []WorkspaceFilter
 	workspaceFilters = append(workspaceFilters, WorkspaceFilter{
 		Type:     WorkspaceName,
@@ -103,6 +94,18 @@ func main() {
 		Value:    "aws",
 	})
 
+	var tfVersionFilters []TFVersionFilter
+	tfVersionFilters = append(tfVersionFilters, TFVersionFilter{
+		Type:     TFVersionVersion,
+		Operator: Contains,
+		Value:    "0.12",
+	})
+
+	mods, err := c.Modules(moduleFilters)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	works, err := c.Workspaces(workspaceFilters)
 	if err != nil {
 		log.Fatal(err)
@@ -113,12 +116,25 @@ func main() {
 		log.Fatal(err)
 	}
 
+	tfVers, err := c.TFVersions()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, mod := range mods {
+		log.Println(mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
+	}
+
 	for _, work := range works {
 		log.Println(work.WorkspaceName, work.WorkspaceCreatedAt, work.WorkspaceUpdatedAt, work.Modules, work.ModuleCount)
 	}
 
 	for _, prov := range provs {
 		log.Println(prov.Name, prov.Source, prov.Version, prov.RegistryType, prov.WorkspaceCount, prov.Workspaces)
+	}
+
+	for _, tfVer := range tfVers {
+		log.Println(tfVer.Version, tfVer.WorkspaceCount, tfVer.Workspaces)
 	}
 
 }
