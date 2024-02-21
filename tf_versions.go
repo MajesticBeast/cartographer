@@ -73,6 +73,10 @@ func (c *Cartographer) TFVersions() (TFVersionList, error) {
 			break
 		}
 
+		if apiResponse.Links.Next == nil {
+			break
+		}
+
 		req.URL, err = url.Parse(apiResponse.Links.Next.(string))
 		if err != nil {
 			return nil, err

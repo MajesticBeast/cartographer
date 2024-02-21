@@ -11,6 +11,7 @@ const (
 	ModuleName ModuleFilterType = iota
 	ModuleSource
 	ModuleVersion
+	ModuleRegistryType
 	ModuleWorkspaceCount
 	ModuleInWorkspaces
 )
@@ -75,6 +76,10 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 		}
 
 		if apiResponse.Meta.Pagination.NextPage == nil {
+			break
+		}
+
+		if apiResponse.Links.Next == nil {
 			break
 		}
 
