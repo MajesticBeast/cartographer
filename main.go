@@ -1,11 +1,9 @@
-package main
+package cartographer
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"time"
 )
 
@@ -56,10 +54,10 @@ func buildUrl(orgName string) (*url.URL, error) {
 	return baseURL, nil
 }
 
-// CheckStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
+// checkStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
 // that the request was rate limited. If the status code is not in the 200 range, it returns an error indicating
 // the status code.
-func CheckStatusCode(res *http.Response) error {
+func checkStatusCode(res *http.Response) error {
 	if res.StatusCode == 429 {
 		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting")
 	}
@@ -70,71 +68,72 @@ func CheckStatusCode(res *http.Response) error {
 	return nil
 }
 
-func main() {
-	c := NewCartographer("thelostsons", os.Getenv("TFTOKEN"))
-
-	var moduleFilters []ModuleFilter
-	moduleFilters = append(moduleFilters, ModuleFilter{
-		Type:     ModuleName,
-		Operator: Contains,
-		Value:    "iam",
-	})
-
-	var workspaceFilters []WorkspaceFilter
-	workspaceFilters = append(workspaceFilters, WorkspaceFilter{
-		Type:     WorkspaceName,
-		Operator: Contains,
-		Value:    "lostsons",
-	})
-
-	var providerFilters []ProviderFilter
-	providerFilters = append(providerFilters, ProviderFilter{
-		Type:     ProviderName,
-		Operator: Contains,
-		Value:    "aws",
-	})
-
-	var tfVersionFilters []TFVersionFilter
-	tfVersionFilters = append(tfVersionFilters, TFVersionFilter{
-		Type:     TFVersionVersion,
-		Operator: Contains,
-		Value:    "0.12",
-	})
-
-	mods, err := c.Modules(moduleFilters)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	works, err := c.Workspaces(workspaceFilters)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	provs, err := c.Providers(providerFilters)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	tfVers, err := c.TFVersions()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, mod := range mods {
-		log.Println(mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
-	}
-
-	for _, work := range works {
-		log.Println(work.WorkspaceName, work.WorkspaceCreatedAt, work.WorkspaceUpdatedAt, work.Modules, work.ModuleCount)
-	}
-
-	for _, prov := range provs {
-		log.Println(prov.Name, prov.Source, prov.Version, prov.RegistryType, prov.WorkspaceCount, prov.Workspaces)
-	}
-
-	for _, tfVer := range tfVers {
-		log.Println(tfVer.Version, tfVer.WorkspaceCount, tfVer.Workspaces)
-	}
-
-}
+//
+//func main() {
+//	c := NewCartographer("thelostsons", os.Getenv("TFTOKEN"))
+//
+//	var moduleFilters []moduleFilter
+//	moduleFilters = append(moduleFilters, moduleFilter{
+//		Type:     moduleName,
+//		Operator: Contains,
+//		Value:    "iam",
+//	})
+//
+//	var workspaceFilters []workspaceFilter
+//	workspaceFilters = append(workspaceFilters, workspaceFilter{
+//		Type:     workspaceName,
+//		Operator: Contains,
+//		Value:    "lostsons",
+//	})
+//
+//	var providerFilters []providerFilter
+//	providerFilters = append(providerFilters, providerFilter{
+//		Type:     providerName,
+//		Operator: Contains,
+//		Value:    "aws",
+//	})
+//
+//	var tfVersionFilters []tfVersionFilter
+//	tfVersionFilters = append(tfVersionFilters, tfVersionFilter{
+//		Type:     tfVersionVersion,
+//		Operator: Contains,
+//		Value:    "0.12",
+//	})
+//
+//	mods, err := c.modules(moduleFilters)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	works, err := c.workspaces(workspaceFilters)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	provs, err := c.providers(providerFilters)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	tfVers, err := c.tfVersions()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	for _, mod := range mods {
+//		log.Println(mod.Name, mod.Source, mod.Version, mod.RegistryType, mod.WorkspaceCount, mod.Workspaces)
+//	}
+//
+//	for _, work := range works {
+//		log.Println(work.WorkspaceName, work.WorkspaceCreatedAt, work.WorkspaceUpdatedAt, work.Modules, work.ModuleCount)
+//	}
+//
+//	for _, prov := range provs {
+//		log.Println(prov.Name, prov.Source, prov.Version, prov.RegistryType, prov.WorkspaceCount, prov.Workspaces)
+//	}
+//
+//	for _, tfVer := range tfVers {
+//		log.Println(tfVer.Version, tfVer.WorkspaceCount, tfVer.Workspaces)
+//	}
+//
+//}

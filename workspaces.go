@@ -1,4 +1,4 @@
-package main
+package cartographer
 
 import (
 	"encoding/json"
@@ -9,31 +9,31 @@ import (
 )
 
 const (
-	WorkspaceAllChecksSucceeded WorkspaceFilterType = iota
-	WorkspaceChecksErrored
-	WorkspaceChecksFailed
-	WorkspaceChecksPassed
-	WorkspaceChecksUnknown
-	WorkspaceCurrentRunAppliedAt
-	WorkspaceCurrentRunExternalId
-	WorkspaceCurrentRunStatus
-	WorkspaceDrifted
-	WorkspaceExternalId
-	WorkspaceModuleCount
-	WorkspaceModulesInWorkspace
-	WorkspaceOrganizationName
-	WorkspaceProjectExternalId
-	WorkspaceProjectName
-	WorkspaceProviderCount
-	WorkspaceProviders
-	WorkspaceResourcesDrifted
-	WorkspaceResourcesUndrifted
-	WorkspaceStateVersionTerraformVersion
-	WorkspaceVcsRepoIdentifier
-	WorkspaceCreatedAt
-	WorkspaceName
-	WorkspaceTerraformVersion
-	WorkspaceUpdatedAt
+	workspaceAllChecksSucceeded WorkspaceFilterType = iota
+	workspaceChecksErrored
+	workspaceChecksFailed
+	workspaceChecksPassed
+	workspaceChecksUnknown
+	workspaceCurrentRunAppliedAt
+	workspaceCurrentRunExternalId
+	workspaceCurrentRunStatus
+	workspaceDrifted
+	workspaceExternalId
+	workspaceModuleCount
+	workspaceModulesInWorkspace
+	workspaceOrganizationName
+	workspaceProjectExternalId
+	workspaceProjectName
+	workspaceProviderCount
+	workspaceProviders
+	workspaceResourcesDrifted
+	workspaceResourcesUndrifted
+	workspaceStateVersionTerraformVersion
+	workspaceVcsRepoIdentifier
+	workspaceCreatedAt
+	workspaceName
+	workspaceTerraformVersion
+	workspaceUpdatedAt
 )
 
 type WorkspaceFilterType int
@@ -76,10 +76,10 @@ func (w WorkspaceFilterType) String() string {
 
 type WorkspaceList []Workspace
 
-// Workspaces Retrieve a list of workspaces in an organization. It takes an http.Client, the name of the organization,
+// workspaces Retrieve a list of workspaces in an organization. It takes an http.Client, the name of the organization,
 // and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request is successful,
-// it returns a slice of Workspace.
-func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, error) {
+// it returns a slice of workspace.
+func (c *Cartographer) workspaces(filters []WorkspaceFilter) (WorkspaceList, error) {
 	var workspaces WorkspaceList
 
 	baseUrl, err := buildUrl(c.orgName)
@@ -107,6 +107,10 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, err
 	for {
 		res, err := c.client.Do(req)
 		if err != nil {
+			return nil, err
+		}
+
+		if err := checkStatusCode(res); err != nil {
 			return nil, err
 		}
 

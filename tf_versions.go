@@ -1,19 +1,20 @@
-package main
+package cartographer
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 )
 
 const (
-	TFVersionVersion TFVersionFilterType = iota
-	TFVersionWorkspaceCount
-	TFVersionWorkspaces
+	tfVersionVersion TFVersionFilterType = iota
+	tfVersionWorkspaceCount
+	tfVersionWorkspaces
 )
 
 type TFVersionFilterType int
+
+type TFVersionList []TFVersion
 
 type TFVersionFilter struct {
 	Type     TFVersionFilterType
@@ -25,8 +26,8 @@ func (c TFVersionFilterType) String() string {
 	return [...]string{"version", "workspace-count", "workspaces"}[c]
 }
 
-func (c *Cartographer) TFVersions() (TFVersionList, error) {
-	var versions TFVersionList
+func (c *Cartographer) tfVersions() (TFVersionList, error) {
+	var tfVersions TFVersionList
 
 	baseUrl, err := buildUrl(c.orgName)
 	if err != nil {
@@ -51,36 +52,31 @@ func (c *Cartographer) TFVersions() (TFVersionList, error) {
 			return nil, err
 		}
 
-		if res.StatusCode < 200 || res.StatusCode >= 300 {
-			return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
-		}
-
-		var apiResponse tfVersionsApiResponse
-		err = json.NewDecoder(res.Body).Decode(&apiResponse)
-		if err != nil {
+		if err := checkStatusCode(res); err != nil {
 			return nil, err
 		}
 
-		for _, tfVersion := range apiResponse.Data {
-			versions = append(versions, TFVersion{
-				Version:        tfVersion.Attributes.Version,
-				WorkspaceCount: tfVersion.Attributes.WorkspaceCount,
-				Workspaces:     tfVersion.Attributes.Workspaces,
-			})
+		var apiResponse tfVersionsApiResponse
+		if err := json.NewDecoder(res.Body).Decode(&apiResponse); err != nil {
+			return nil, err
+		}
+
+		for _, item := range apiResponse.Data {
+			tfVersions = append(tfVersions, item.Attributes)
 		}
 
 		if apiResponse.Links.Next == nil {
 			break
 		}
 
-		req, err = http.NewRequest("GET", apiResponse.Links.Next.(string), nil)
+		req.URL, err = url.Parse(apiResponse.Links.Next.(string))
 		if err != nil {
 			return nil, err
 		}
 		res.Body.Close()
 	}
 
-	return versions, nil
+	return tfVersions, nil
 }
 
 type TFVersion struct {
@@ -88,8 +84,6 @@ type TFVersion struct {
 	WorkspaceCount int    `json:"workspace-count"`
 	Workspaces     string `json:"workspaces"`
 }
-
-type TFVersionList []TFVersion
 
 type tfVersionsApiResponse struct {
 	Data []struct {

@@ -1,4 +1,4 @@
-package main
+package cartographer
 
 import (
 	"encoding/json"
@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	ProviderName ProviderFilterType = iota
-	ProviderSource
-	ProviderVersion
-	ProviderRegistryType
-	ProviderWorkspaceCount
-	ProviderWorkspaces
+	providerName ProviderFilterType = iota
+	providerSource
+	providerVersion
+	providerRegistryType
+	providerWorkspaceCount
+	providerWorkspaces
 )
 
 type ProviderList []Provider
@@ -30,10 +30,10 @@ type ProviderFilter struct {
 	Value    string
 }
 
-// Providers Retrieve a list of providers across all workspaces in an organization. It takes an http.Client, the name of
+// providers Retrieve a list of providers across all workspaces in an organization. It takes an http.Client, the name of
 // the organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the
-// request is successful, it returns a slice of Provider.
-func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error) {
+// request is successful, it returns a slice of provider.
+func (c *Cartographer) providers(filters []ProviderFilter) (ProviderList, error) {
 	var providers ProviderList
 
 	baseUrl, err := buildUrl(c.orgName)
@@ -64,7 +64,7 @@ func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error)
 			return nil, err
 		}
 
-		if err := CheckStatusCode(res); err != nil {
+		if err := checkStatusCode(res); err != nil {
 			return nil, err
 		}
 
@@ -73,22 +73,15 @@ func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error)
 			return nil, err
 		}
 
-		for _, provider := range apiResponse.Data {
-			providers = append(providers, Provider{
-				Name:           provider.Attributes.Name,
-				Source:         provider.Attributes.Source,
-				Version:        provider.Attributes.Version,
-				RegistryType:   provider.Attributes.RegistryType,
-				WorkspaceCount: provider.Attributes.WorkspaceCount,
-				Workspaces:     provider.Attributes.Workspaces,
-			})
+		for _, item := range apiResponse.Data {
+			providers = append(providers, item.Attributes)
 		}
 
 		if apiResponse.Links.Next == nil {
 			break
 		}
 
-		req, err = http.NewRequest("GET", apiResponse.Links.Next.(string), nil)
+		req.URL, err = url.Parse(apiResponse.Links.Next.(string))
 		if err != nil {
 			return nil, err
 		}
@@ -100,12 +93,12 @@ func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error)
 
 // Provider represents a Terraform Cloud provider.
 type Provider struct {
-	Name           string
-	Source         string
-	Version        string
-	RegistryType   string
-	WorkspaceCount int
-	Workspaces     string
+	Name           string `json:"name"`
+	Source         string `json:"source"`
+	Version        string `json:"version"`
+	RegistryType   string `json:"registry-type"`
+	WorkspaceCount int    `json:"workspace-count"`
+	Workspaces     string `json:"workspaces"`
 }
 
 // providerApiResponse is the response from the Terraform Cloud API for the providers endpoint.

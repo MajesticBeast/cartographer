@@ -1,4 +1,4 @@
-package main
+package cartographer
 
 import (
 	"encoding/json"
@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	ModuleName ModuleFilterType = iota
-	ModuleSource
-	ModuleVersion
-	ModuleWorkspaceCount
-	ModuleInWorkspaces
+	moduleName ModuleFilterType = iota
+	moduleSource
+	moduleVersion
+	moduleWorkspaceCount
+	moduleInWorkspaces
 )
 
 type ModuleFilterType int
@@ -29,7 +29,7 @@ type ModuleFilter struct {
 
 // Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
 // organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
-// is successful, it returns a slice of Module.
+// is successful, it returns a slice of module.
 func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 	var modules ModuleList
 
@@ -61,7 +61,7 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 			return nil, err
 		}
 
-		if err := CheckStatusCode(res); err != nil {
+		if err := checkStatusCode(res); err != nil {
 			return nil, err
 		}
 
@@ -88,7 +88,7 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 	return modules, nil
 }
 
-// ModuleList is a slice of Module
+// ModuleList is a slice of module
 type ModuleList []Module
 
 // Module represents a module in Terraform Cloud
