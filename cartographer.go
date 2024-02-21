@@ -1,135 +1,69 @@
 package cartographer
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
-	moduleName ModuleFilterType = iota
-	moduleSource
-	moduleVersion
-	moduleWorkspaceCount
-	moduleInWorkspaces
+	Is FilterOperator = iota
+	IsNot
+	Contains
+	DoesNotContain
+	IsEmpty
+	IsNotEmpty
+	Gt
+	Lt
+	Gteq
+	Lteq
+	IsBefore
+	IsAfter
 )
 
-type ModuleFilterType int
+type FilterOperator int
 
-func (m ModuleFilterType) String() string {
-	return [...]string{"name", "source", "version", "workspace-count", "workspaces"}[m]
+func (f FilterOperator) String() string {
+	return [...]string{"is", "is-not", "contains", "does-not-contain", "is-empty", "is-not-empty", "gt", "lt", "gteq", "lteq", "is-before", "is-after"}[f]
 }
 
-type ModuleFilter struct {
-	Type     ModuleFilterType
-	Operator FilterOperator
-	Value    string
+type Cartographer struct {
+	client  *http.Client
+	orgName string
+	token   string
 }
 
-// Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
-// organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
-// is successful, it returns a slice of module.
-func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
-	var modules ModuleList
+func NewCartographer(orgName string, token string) *Cartographer {
+	return &Cartographer{
+		client: &http.Client{
+			Timeout: time.Second * 10,
+		},
+		orgName: orgName,
+		token:   token,
+	}
+}
 
-	baseUrl, err := buildUrl(c.orgName)
+// buildUrl Builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns the
+// formatted URL string.
+func buildUrl(orgName string) (*url.URL, error) {
+	baseURL, err := url.Parse(fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer", orgName))
 	if err != nil {
 		return nil, err
 	}
-
-	q := url.Values{}
-	q.Add("type", "modules")
-
-	for i, filter := range filters {
-		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type.String(), filter.Operator.String())
-		q.Add(key, filter.Value)
-	}
-
-	baseUrl.RawQuery = q.Encode()
-
-	req, err := http.NewRequest("GET", baseUrl.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+c.token)
-
-	for {
-		res, err := c.client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-
-		if err := checkStatusCode(res); err != nil {
-			return nil, err
-		}
-
-		var apiResponse modulesApiResponse
-		if err = json.NewDecoder(res.Body).Decode(&apiResponse); err != nil {
-			return nil, err
-		}
-
-		for _, item := range apiResponse.Data {
-			modules = append(modules, item.Attributes)
-		}
-
-		if apiResponse.Meta.Pagination.NextPage == nil {
-			break
-		}
-
-		req.URL, err = url.Parse(apiResponse.Links.Next.(string))
-		if err != nil {
-			return nil, err
-		}
-		res.Body.Close()
-	}
-
-	return modules, nil
+	return baseURL, nil
 }
 
-// ModuleList is a slice of module
-type ModuleList []Module
+// checkStatusCode checks the status code of the response. If the status code is 429, it returns an error indicating
+// that the request was rate limited. If the status code is not in the 200 range, it returns an error indicating
+// the status code.
+func checkStatusCode(res *http.Response) error {
+	if res.StatusCode == 429 {
+		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting")
+	}
 
-// Module represents a module in Terraform Cloud
-type Module struct {
-	Name           string `json:"name"`
-	Source         string `json:"source"`
-	Version        string `json:"version"`
-	RegistryType   string `json:"registry-type"`
-	WorkspaceCount int    `json:"workspace-count"`
-	Workspaces     string `json:"workspaces"`
-}
-
-// modulesApiResponse is the response from the Terraform Cloud API
-type modulesApiResponse struct {
-	Data []struct {
-		Attributes struct {
-			Name           string `json:"name"`
-			Source         string `json:"source"`
-			Version        string `json:"version"`
-			RegistryType   string `json:"registry-type"`
-			WorkspaceCount int    `json:"workspace-count"`
-			Workspaces     string `json:"workspaces"`
-		} `json:"attributes"`
-		Id   string `json:"id"`
-		Type string `json:"type"`
-	} `json:"data"`
-	Links struct {
-		Self  string      `json:"self"`
-		First string      `json:"first"`
-		Last  string      `json:"last"`
-		Prev  interface{} `json:"prev"`
-		Next  interface{} `json:"next"`
-	} `json:"links"`
-	Meta struct {
-		Pagination struct {
-			CurrentPage int         `json:"current-page"`
-			PageSize    int         `json:"page-size"`
-			NextPage    interface{} `json:"next-page"`
-			PrevPage    interface{} `json:"prev-page"`
-			TotalPages  int         `json:"total-pages"`
-			TotalCount  int         `json:"total-count"`
-		} `json:"pagination"`
-	} `json:"meta"`
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
+	return nil
 }
