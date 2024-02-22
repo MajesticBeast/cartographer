@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestModules(t *testing.T) {
+func TestProviders(t *testing.T) {
 	jsonResponse := `{
 		"data": [
 			{
@@ -57,32 +57,32 @@ func TestModules(t *testing.T) {
 		token:   "test",
 	}
 
-	modules, err := c.Modules([]ModuleFilter{})
+	modules, err := c.Providers([]ProviderFilter{})
 	if err != nil {
-		t.Errorf("Modules() returned an error: %v", err)
+		t.Errorf("Providers() returned an error: %v", err)
 	}
 
 	if len(modules) != 1 {
-		t.Errorf("Modules() returned %v modules, expected 1", len(modules))
+		t.Errorf("Providers() returned %v modules, expected 1", len(modules))
 	}
 
 	module := modules[0]
 	if module.Name != "testname" {
-		t.Errorf("Modules() returned module with name %v, expected 'test'", module.Name)
+		t.Errorf("Providers() returned module with name %v, expected 'test'", module.Name)
 	}
 	if module.Source != "testsource" {
-		t.Errorf("Modules() returned module with source %v, expected 'test'", module.Source)
+		t.Errorf("Providers() returned module with source %v, expected 'test'", module.Source)
 	}
 	if module.Version != "testversion" {
-		t.Errorf("Modules() returned module with version %v, expected 'test'", module.Version)
+		t.Errorf("Providers() returned module with version %v, expected 'test'", module.Version)
 	}
 	if module.RegistryType != "testtype" {
-		t.Errorf("Modules() returned module with registry type %v, expected 'test'", module.RegistryType)
+		t.Errorf("Providers() returned module with registry type %v, expected 'test'", module.RegistryType)
 	}
 	if module.WorkspaceCount != 2 {
-		t.Errorf("Modules() returned module with workspace count %v, expected 2", module.WorkspaceCount)
+		t.Errorf("Providers() returned module with workspace count %v, expected 2", module.WorkspaceCount)
 	}
 	if module.Workspaces != "testworkspaces" {
-		t.Errorf("Modules() returned module with workspaces %v, expected 'test'", module.Workspaces)
+		t.Errorf("Providers() returned module with workspaces %v, expected 'test'", module.Workspaces)
 	}
 }

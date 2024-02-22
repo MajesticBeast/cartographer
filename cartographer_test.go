@@ -5,6 +5,16 @@ import (
 	"testing"
 )
 
+type MockDoType func(req *http.Request) (*http.Response, error)
+
+type MockClient struct {
+	MockDo MockDoType
+}
+
+func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
+	return m.MockDo(req)
+}
+
 func TestNewCartographer(t *testing.T) {
 	orgName := "testOrg"
 	token := "testToken"
