@@ -14,8 +14,10 @@ import (
 )
 
 func main() {
+	// Pass in your Terraform Cloud organization name and API token
 	c := carto.NewCartographer(os.Getenv("ORG_NAME"), os.Getenv("TFTOKEN"))
 
+	// Set up any desired filters for your query
 	var moduleFilters = []carto.ModuleFilter{
 		{
 			Type:     carto.ModuleName,
@@ -38,6 +40,7 @@ func main() {
 
 	workspaceFilters = append(workspaceFilters, workspaceFilter)
 
+	// Execute your queries
 	modules, err := c.Modules(moduleFilters)
 	if err != nil {
 		fmt.Println(err)
@@ -48,6 +51,7 @@ func main() {
 		fmt.Println(err)
 	}
 
+	// Profit
 	fmt.Println(modules)
 	for _, workspace := range workspaces {
 		fmt.Println(workspace.WorkspaceName, workspace.WorkspaceCreatedAt, workspace.WorkspaceUpdatedAt, workspace.Modules)
