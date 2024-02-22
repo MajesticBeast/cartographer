@@ -64,7 +64,8 @@ func buildUrl(orgName string) (*url.URL, error) {
 // the status code.
 func checkStatusCode(res *http.Response) error {
 	if res.StatusCode == 429 {
-		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting")
+		limit := res.Header.Get("x-ratelimit-limit")
+		return fmt.Errorf("rate limited - https://developer.hashicorp.com/terraform/cloud-docs/api-docs#rate-limiting, limit: %s", limit)
 	}
 
 	if res.StatusCode < 200 || res.StatusCode >= 300 {
