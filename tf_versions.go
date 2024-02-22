@@ -2,6 +2,7 @@ package cartographer
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -30,7 +31,7 @@ func (c TFVersionFilterType) String() string {
 // TFVersions Retrieve a list of Terraform versions across all workspaces in an organization. It takes an http.Client,
 // the name of the organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error.
 // If the request is successful, it returns a slice of TFVersion.
-func (c *Cartographer) TFVersions() (TFVersionList, error) {
+func (c *Cartographer) TFVersions(filters []TFVersionFilter) (TFVersionList, error) {
 	var tfVersions TFVersionList
 
 	baseUrl, err := buildUrl(c.orgName)
@@ -40,6 +41,11 @@ func (c *Cartographer) TFVersions() (TFVersionList, error) {
 
 	q := url.Values{}
 	q.Add("type", "tf_versions")
+
+	for i, filter := range filters {
+		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type.String(), filter.Operator.String())
+		q.Add(key, filter.Value)
+	}
 
 	baseUrl.RawQuery = q.Encode()
 
