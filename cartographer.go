@@ -38,6 +38,7 @@ type Cartographer struct {
 	token   string
 }
 
+// NewCartographer Creates a new Cartographer client with the given organization name and Terraform Cloud API token.
 func NewCartographer(orgName string, token string) *Cartographer {
 	return &Cartographer{
 		client: &http.Client{

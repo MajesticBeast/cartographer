@@ -77,7 +77,7 @@ func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error)
 			providers = append(providers, item.Attributes)
 		}
 
-		if apiResponse.Links.Next == nil {
+		if apiResponse.Meta.Pagination.NextPage == nil {
 			break
 		}
 

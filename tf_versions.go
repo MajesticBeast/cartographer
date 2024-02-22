@@ -75,7 +75,7 @@ func (c *Cartographer) TFVersions(filters []TFVersionFilter) (TFVersionList, err
 			tfVersions = append(tfVersions, item.Attributes)
 		}
 
-		if apiResponse.Links.Next == nil {
+		if apiResponse.Meta.Pagination.NextPage == nil {
 			break
 		}
 
