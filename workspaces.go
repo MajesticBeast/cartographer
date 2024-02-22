@@ -89,6 +89,7 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, err
 
 	q := url.Values{}
 	q.Add("type", "workspaces")
+	q.Add("page[size]", "100")
 
 	for i, filter := range filters {
 		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type.String(), filter.Operator.String())

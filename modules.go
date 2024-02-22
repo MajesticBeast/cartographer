@@ -41,6 +41,7 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 
 	q := url.Values{}
 	q.Add("type", "modules")
+	q.Add("page[size]", "100")
 
 	for i, filter := range filters {
 		key := fmt.Sprintf("filter[%d][%s][%s][0]", i, filter.Type.String(), filter.Operator.String())
