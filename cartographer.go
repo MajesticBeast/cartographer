@@ -28,8 +28,12 @@ func (f FilterOperator) String() string {
 	return [...]string{"is", "is-not", "contains", "does-not-contain", "is-empty", "is-not-empty", "gt", "lt", "gteq", "lteq", "is-before", "is-after"}[f]
 }
 
+type Doer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type Cartographer struct {
-	client  *http.Client
+	client  Doer
 	orgName string
 	token   string
 }
