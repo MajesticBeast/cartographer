@@ -28,11 +28,10 @@ type ModuleFilter struct {
 	Value    string
 }
 
-// Modules Retrieve a list of modules across all workspaces in an organization. It takes an http.Client, the name of the
-// organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request
-// is successful, it returns a slice of module.
-func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
-	var modules ModuleList
+// Modules Retrieve a list of modules across all workspaces in an organization. It takes a slice of ModuleFilter and
+// returns a slice of Module. If the request fails, it returns an error.
+func (c *Cartographer) Modules(filters []ModuleFilter) ([]Module, error) {
+	var modules []Module
 
 	baseUrl, err := buildUrl(c.orgName)
 	if err != nil {
@@ -93,9 +92,6 @@ func (c *Cartographer) Modules(filters []ModuleFilter) (ModuleList, error) {
 
 	return modules, nil
 }
-
-// ModuleList is a slice of module
-type ModuleList []Module
 
 // Module represents a module in Terraform Cloud
 type Module struct {

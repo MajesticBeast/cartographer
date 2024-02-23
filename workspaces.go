@@ -74,13 +74,9 @@ func (w WorkspaceFilterType) String() string {
 	}[w]
 }
 
-type WorkspaceList []Workspace
-
-// Workspaces Retrieve a list of workspaces in an organization. It takes an http.Client, the name of the organization,
-// and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the request is successful,
-// it returns a slice of workspace.
-func (c *Cartographer) Workspaces(filters []WorkspaceFilter) (WorkspaceList, error) {
-	var workspaces WorkspaceList
+// Workspaces Retrieve a list of workspaces in an organization.
+func (c *Cartographer) Workspaces(filters []WorkspaceFilter) ([]Workspace, error) {
+	var workspaces []Workspace
 
 	baseUrl, err := buildUrl(c.orgName)
 	if err != nil {

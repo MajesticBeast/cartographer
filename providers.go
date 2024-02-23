@@ -16,8 +16,6 @@ const (
 	ProviderWorkspaces
 )
 
-type ProviderList []Provider
-
 type ProviderFilterType int
 
 func (p ProviderFilterType) String() string {
@@ -30,11 +28,9 @@ type ProviderFilter struct {
 	Value    string
 }
 
-// Providers Retrieve a list of providers across all workspaces in an organization. It takes an http.Client, the name of
-// the organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error. If the
-// request is successful, it returns a slice of provider.
-func (c *Cartographer) Providers(filters []ProviderFilter) (ProviderList, error) {
-	var providers ProviderList
+// Providers Retrieve a list of providers across all workspaces in an organization.
+func (c *Cartographer) Providers(filters []ProviderFilter) ([]Provider, error) {
+	var providers []Provider
 
 	baseUrl, err := buildUrl(c.orgName)
 	if err != nil {

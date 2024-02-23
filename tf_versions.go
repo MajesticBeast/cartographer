@@ -15,8 +15,6 @@ const (
 
 type TFVersionFilterType int
 
-type TFVersionList []TFVersion
-
 type TFVersionFilter struct {
 	Type     TFVersionFilterType
 	Operator FilterOperator
@@ -28,11 +26,9 @@ func (c TFVersionFilterType) String() string {
 	return [...]string{"version", "workspace-count", "workspaces"}[c]
 }
 
-// TFVersions Retrieve a list of Terraform versions across all workspaces in an organization. It takes an http.Client,
-// the name of the organization, and a Terraform Cloud API token as arguments. If the request fails, it returns an error.
-// If the request is successful, it returns a slice of TFVersion.
-func (c *Cartographer) TFVersions(filters []TFVersionFilter) (TFVersionList, error) {
-	var tfVersions TFVersionList
+// TFVersions Retrieve a list of Terraform versions across all workspaces in an organization.
+func (c *Cartographer) TFVersions(filters []TFVersionFilter) ([]TFVersion, error) {
+	var tfVersions []TFVersion
 
 	baseUrl, err := buildUrl(c.orgName)
 	if err != nil {
