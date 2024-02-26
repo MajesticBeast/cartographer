@@ -8,6 +8,11 @@ import (
 )
 
 const (
+	rateLimit  = 30
+	rateBuffer = 7
+)
+
+const (
 	Is FilterOperator = iota
 	IsNot
 	Contains
@@ -72,4 +77,12 @@ func checkStatusCode(res *http.Response) error {
 		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 	return nil
+}
+
+// preventRateLimiting prevents rate limiting by sleeping for a duration based on the rate limit and buffer.
+// TF Cloud has a rate limit of 30 requests per second. This function takes the inverse of the rate limit and multiplies
+// it by 1000 to get the duration to sleep. It then adds a buffer to the duration to prevent rate limiting.
+func preventRateLimiting(pageCount int) {
+	delay := time.Duration(1000/rateLimit)*time.Millisecond + rateBuffer
+	time.Sleep(delay)
 }

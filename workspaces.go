@@ -133,6 +133,8 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) ([]Workspace, error
 			return nil, err
 		}
 		res.Body.Close()
+
+		preventRateLimiting(apiResponse.Meta.Pagination.TotalPages)
 	}
 
 	return workspaces, nil

@@ -85,6 +85,8 @@ func (c *Cartographer) TFVersions(filters []TFVersionFilter) ([]TFVersion, error
 			return nil, err
 		}
 		res.Body.Close()
+
+		preventRateLimiting(apiResponse.Meta.Pagination.TotalPages)
 	}
 
 	return tfVersions, nil

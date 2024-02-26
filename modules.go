@@ -88,6 +88,8 @@ func (c *Cartographer) Modules(filters []ModuleFilter) ([]Module, error) {
 			return nil, err
 		}
 		res.Body.Close()
+
+		preventRateLimiting(apiResponse.Meta.Pagination.TotalPages)
 	}
 
 	return modules, nil

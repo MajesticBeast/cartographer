@@ -87,6 +87,8 @@ func (c *Cartographer) Providers(filters []ProviderFilter) ([]Provider, error) {
 			return nil, err
 		}
 		res.Body.Close()
+
+		preventRateLimiting(apiResponse.Meta.Pagination.TotalPages)
 	}
 
 	return providers, nil
