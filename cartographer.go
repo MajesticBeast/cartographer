@@ -83,6 +83,10 @@ func checkStatusCode(res *http.Response) error {
 // TF Cloud has a rate limit of 30 requests per second. This function takes the inverse of the rate limit and multiplies
 // it by 1000 to get the duration to sleep. It then adds a buffer to the duration to prevent rate limiting.
 func preventRateLimiting(pageCount int) {
+	if pageCount < rateLimit {
+		return
+	}
+
 	delay := time.Duration(1000/rateLimit)*time.Millisecond + rateBuffer
 	time.Sleep(delay)
 }
