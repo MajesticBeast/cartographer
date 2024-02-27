@@ -23,7 +23,7 @@ func TestWorkspaces(t *testing.T) {
 					"drifted": false,
 					"external-id": "testID",
 					"module-count": 3,
-					"modules": "iam,s3,tags",
+					"modules": "iam:0.0.1,s3:0.0.2,tags:0.0.3",
 					"organization-name": "myOrgName",
 					"project-external-id": "testID",
 					"project-name": "testProjectName",
