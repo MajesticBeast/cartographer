@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -117,7 +118,47 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) ([]Workspace, error
 		}
 
 		for _, item := range apiResponse.Data {
-			workspaces = append(workspaces, item.Attributes)
+			var workspaceModules []WorkspaceModule
+			if len(item.Attributes.Modules) > 0 {
+				module := strings.Split(item.Attributes.Modules, ", ")
+				for _, m := range module {
+					module := strings.Split(m, ":")
+					workspaceModule := WorkspaceModule{
+						Name:    module[0],
+						Version: module[1],
+					}
+					workspaceModules = append(workspaceModules, workspaceModule)
+				}
+			}
+
+			workspace := Workspace{
+				AllChecksSucceeded:           item.Attributes.AllChecksSucceeded,
+				ChecksErrored:                item.Attributes.ChecksErrored,
+				ChecksFailed:                 item.Attributes.ChecksFailed,
+				ChecksPassed:                 item.Attributes.ChecksPassed,
+				ChecksUnknown:                item.Attributes.ChecksUnknown,
+				CurrentRunAppliedAt:          item.Attributes.CurrentRunAppliedAt,
+				CurrentRunExternalId:         item.Attributes.CurrentRunExternalId,
+				CurrentRunStatus:             item.Attributes.CurrentRunStatus,
+				Drifted:                      item.Attributes.Drifted,
+				ExternalId:                   item.Attributes.ExternalId,
+				ModuleCount:                  item.Attributes.ModuleCount,
+				Modules:                      workspaceModules,
+				OrganizationName:             item.Attributes.OrganizationName,
+				ProjectExternalId:            item.Attributes.ProjectExternalId,
+				ProjectName:                  item.Attributes.ProjectName,
+				ProviderCount:                item.Attributes.ProviderCount,
+				Providers:                    item.Attributes.Providers,
+				ResourcesDrifted:             item.Attributes.ResourcesDrifted,
+				ResourcesUndrifted:           item.Attributes.ResourcesUndrifted,
+				StateVersionTerraformVersion: item.Attributes.StateVersionTerraformVersion,
+				VcsRepoIdentifier:            item.Attributes.VcsRepoIdentifier,
+				WorkspaceCreatedAt:           item.Attributes.WorkspaceCreatedAt,
+				WorkspaceName:                item.Attributes.WorkspaceName,
+				WorkspaceTerraformVersion:    item.Attributes.WorkspaceTerraformVersion,
+				WorkspaceUpdatedAt:           item.Attributes.WorkspaceUpdatedAt,
+			}
+			workspaces = append(workspaces, workspace)
 		}
 
 		if apiResponse.Meta.Pagination.NextPage == nil {
@@ -140,64 +181,70 @@ func (c *Cartographer) Workspaces(filters []WorkspaceFilter) ([]Workspace, error
 	return workspaces, nil
 }
 
+// WorkspaceModule represents a module in the Workspace Struct
+type WorkspaceModule struct {
+	Name    string
+	Version string
+}
+
 // Workspace represents a workspace in Terraform Cloud
 type Workspace struct {
-	AllChecksSucceeded           bool        `json:"all-checks-succeeded"`
-	ChecksErrored                int         `json:"checks-errored"`
-	ChecksFailed                 int         `json:"checks-failed"`
-	ChecksPassed                 int         `json:"checks-passed"`
-	ChecksUnknown                int         `json:"checks-unknown"`
-	CurrentRunAppliedAt          *time.Time  `json:"current-run-applied-at"`
-	CurrentRunExternalId         string      `json:"current-run-external-id"`
-	CurrentRunStatus             string      `json:"current-run-status"`
-	Drifted                      bool        `json:"drifted"`
-	ExternalId                   string      `json:"external-id"`
-	ModuleCount                  int         `json:"module-count"`
-	Modules                      interface{} `json:"modules"`
-	OrganizationName             string      `json:"organization-name"`
-	ProjectExternalId            string      `json:"project-external-id"`
-	ProjectName                  string      `json:"project-name"`
-	ProviderCount                int         `json:"provider-count"`
-	Providers                    interface{} `json:"providers"`
-	ResourcesDrifted             int         `json:"resources-drifted"`
-	ResourcesUndrifted           int         `json:"resources-undrifted"`
-	StateVersionTerraformVersion string      `json:"state-version-terraform-version"`
-	VcsRepoIdentifier            *string     `json:"vcs-repo-identifier"`
-	WorkspaceCreatedAt           time.Time   `json:"workspace-created-at"`
-	WorkspaceName                string      `json:"workspace-name"`
-	WorkspaceTerraformVersion    string      `json:"workspace-terraform-version"`
-	WorkspaceUpdatedAt           time.Time   `json:"workspace-updated-at"`
+	AllChecksSucceeded           bool              `json:"all-checks-succeeded"`
+	ChecksErrored                int               `json:"checks-errored"`
+	ChecksFailed                 int               `json:"checks-failed"`
+	ChecksPassed                 int               `json:"checks-passed"`
+	ChecksUnknown                int               `json:"checks-unknown"`
+	CurrentRunAppliedAt          *time.Time        `json:"current-run-applied-at"`
+	CurrentRunExternalId         string            `json:"current-run-external-id"`
+	CurrentRunStatus             string            `json:"current-run-status"`
+	Drifted                      bool              `json:"drifted"`
+	ExternalId                   string            `json:"external-id"`
+	ModuleCount                  int               `json:"module-count"`
+	Modules                      []WorkspaceModule `json:"modules"`
+	OrganizationName             string            `json:"organization-name"`
+	ProjectExternalId            string            `json:"project-external-id"`
+	ProjectName                  string            `json:"project-name"`
+	ProviderCount                int               `json:"provider-count"`
+	Providers                    string            `json:"providers"`
+	ResourcesDrifted             int               `json:"resources-drifted"`
+	ResourcesUndrifted           int               `json:"resources-undrifted"`
+	StateVersionTerraformVersion string            `json:"state-version-terraform-version"`
+	VcsRepoIdentifier            *string           `json:"vcs-repo-identifier"`
+	WorkspaceCreatedAt           time.Time         `json:"workspace-created-at"`
+	WorkspaceName                string            `json:"workspace-name"`
+	WorkspaceTerraformVersion    string            `json:"workspace-terraform-version"`
+	WorkspaceUpdatedAt           time.Time         `json:"workspace-updated-at"`
 }
 
 // workspacesApiResponse is the response from the Terraform Cloud API
 type workspacesApiResponse struct {
 	Data []struct {
 		Attributes struct {
-			AllChecksSucceeded           bool        `json:"all-checks-succeeded"`
-			ChecksErrored                int         `json:"checks-errored"`
-			ChecksFailed                 int         `json:"checks-failed"`
-			ChecksPassed                 int         `json:"checks-passed"`
-			ChecksUnknown                int         `json:"checks-unknown"`
-			CurrentRunAppliedAt          *time.Time  `json:"current-run-applied-at"`
-			CurrentRunExternalId         string      `json:"current-run-external-id"`
-			CurrentRunStatus             string      `json:"current-run-status"`
-			Drifted                      bool        `json:"drifted"`
-			ExternalId                   string      `json:"external-id"`
-			ModuleCount                  int         `json:"module-count"`
-			Modules                      interface{} `json:"modules"`
-			OrganizationName             string      `json:"organization-name"`
-			ProjectExternalId            string      `json:"project-external-id"`
-			ProjectName                  string      `json:"project-name"`
-			ProviderCount                int         `json:"provider-count"`
-			Providers                    interface{} `json:"providers"`
-			ResourcesDrifted             int         `json:"resources-drifted"`
-			ResourcesUndrifted           int         `json:"resources-undrifted"`
-			StateVersionTerraformVersion string      `json:"state-version-terraform-version"`
-			VcsRepoIdentifier            *string     `json:"vcs-repo-identifier"`
-			WorkspaceCreatedAt           time.Time   `json:"workspace-created-at"`
-			WorkspaceName                string      `json:"workspace-name"`
-			WorkspaceTerraformVersion    string      `json:"workspace-terraform-version"`
-			WorkspaceUpdatedAt           time.Time   `json:"workspace-updated-at"`
+			AllChecksSucceeded           bool       `json:"all-checks-succeeded"`
+			ChecksErrored                int        `json:"checks-errored"`
+			ChecksFailed                 int        `json:"checks-failed"`
+			ChecksPassed                 int        `json:"checks-passed"`
+			ChecksUnknown                int        `json:"checks-unknown"`
+			CurrentRunAppliedAt          *time.Time `json:"current-run-applied-at"`
+			CurrentRunExternalId         string     `json:"current-run-external-id"`
+			CurrentRunStatus             string     `json:"current-run-status"`
+			Drifted                      bool       `json:"drifted"`
+			ExternalId                   string     `json:"external-id"`
+			ModuleCount                  int        `json:"module-count"`
+			Modules                      string     `json:"modules"`
+			OrganizationName             string     `json:"organization-name"`
+			ProjectExternalId            string     `json:"project-external-id"`
+			ProjectName                  string     `json:"project-name"`
+			ProviderCount                int        `json:"provider-count"`
+			Providers                    string     `json:"providers"`
+			ResourcesDrifted             int        `json:"resources-drifted"`
+			ResourcesUndrifted           int        `json:"resources-undrifted"`
+			StateVersionTerraformVersion string     `json:"state-version-terraform-version"`
+			VcsRepoIdentifier            *string    `json:"vcs-repo-identifier"`
+			WorkspaceCreatedAt           time.Time  `json:"workspace-created-at"`
+			WorkspaceName                string     `json:"workspace-name"`
+			WorkspaceTerraformVersion    string     `json:"workspace-terraform-version"`
+			WorkspaceUpdatedAt           time.Time  `json:"workspace-updated-at"`
 		} `json:"attributes"`
 		Id   string `json:"id"`
 		Type string `json:"type"`
