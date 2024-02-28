@@ -79,7 +79,7 @@ func (w WorkspaceFilterType) String() string {
 func (c *Cartographer) Workspaces(filters []WorkspaceFilter) ([]Workspace, error) {
 	var workspaces []Workspace
 
-	baseUrl, err := buildUrl(c.orgName)
+	baseUrl, err := buildExplorerUrl(c.orgName)
 	if err != nil {
 		return nil, err
 	}

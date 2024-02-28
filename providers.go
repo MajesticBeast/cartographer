@@ -32,7 +32,7 @@ type ProviderFilter struct {
 func (c *Cartographer) Providers(filters []ProviderFilter) ([]Provider, error) {
 	var providers []Provider
 
-	baseUrl, err := buildUrl(c.orgName)
+	baseUrl, err := buildExplorerUrl(c.orgName)
 	if err != nil {
 		return nil, err
 	}

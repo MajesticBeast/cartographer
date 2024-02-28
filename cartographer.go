@@ -54,10 +54,20 @@ func NewCartographer(orgName string, token string) *Cartographer {
 	}
 }
 
-// buildUrl Builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns the
-// formatted URL string.
-func buildUrl(orgName string) (*url.URL, error) {
+// buildExplorerUrl Builds the URL for the Terraform Cloud API. It takes the organization name as an argument and returns
+// the formatted URL string.
+func buildExplorerUrl(orgName string) (*url.URL, error) {
 	baseURL, err := url.Parse(fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/explorer", orgName))
+	if err != nil {
+		return nil, err
+	}
+	return baseURL, nil
+}
+
+// buildRegistryUrl Builds the URL for the Terraform Cloud Private Registry API. It takes the organization name as an
+// argument and returns the formatted URL string.
+func buildRegistryUrl(orgName string) (*url.URL, error) {
+	baseURL, err := url.Parse(fmt.Sprintf("https://app.terraform.io/api/v2/organizations/%s/registry-modules", orgName))
 	if err != nil {
 		return nil, err
 	}

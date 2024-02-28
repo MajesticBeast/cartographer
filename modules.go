@@ -33,7 +33,7 @@ type ModuleFilter struct {
 func (c *Cartographer) Modules(filters []ModuleFilter) ([]Module, error) {
 	var modules []Module
 
-	baseUrl, err := buildUrl(c.orgName)
+	baseUrl, err := buildExplorerUrl(c.orgName)
 	if err != nil {
 		return nil, err
 	}

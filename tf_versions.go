@@ -30,7 +30,7 @@ func (c TFVersionFilterType) String() string {
 func (c *Cartographer) TFVersions(filters []TFVersionFilter) ([]TFVersion, error) {
 	var tfVersions []TFVersion
 
-	baseUrl, err := buildUrl(c.orgName)
+	baseUrl, err := buildExplorerUrl(c.orgName)
 	if err != nil {
 		return nil, err
 	}
